@@ -2,11 +2,7 @@ import java.util.Scanner;
 
 public class SRTF {
     static class Process {
-        int id;
-        int arrivalTime;
-        int burstTime;
-        int remainingTime;
-        int completionTime;
+        int id, arrivalTime, burstTime, remainingTime, completionTime, waitingTime, turnaroundTime;
 
         Process(int id, int arrivalTime, int burstTime) {
             this.id = id;
@@ -31,20 +27,19 @@ public class SRTF {
             processes[i] = new Process(i + 1, arrivalTime, burstTime);
         }
 
-        int currentTime = 0;
-        int completedProcesses = 0;
+        int currentTime = 0, completedProcesses = 0;
         Process lastProcess = null;
-        int startTime = 0; // Track when a process starts running
+        int startTime = 0;
+        int totalTurnaroundTime = 0, totalWaitingTime = 0;
 
         System.out.println("\nScheduling Algorithm: Shortest Remaining Time First");
         System.out.println("Context Switch: 1 ms");
-        System.out.println("Time Process/CS");
+        System.out.println("Time\tProcess/CS");
 
         while (completedProcesses < n) {
             Process selectedProcess = null;
             int minRemainingTime = Integer.MAX_VALUE;
 
-            // Select the process with the shortest remaining time
             for (Process p : processes) {
                 if (p.arrivalTime <= currentTime && p.remainingTime > 0) {
                     if (p.remainingTime < minRemainingTime) {
@@ -54,26 +49,22 @@ public class SRTF {
                 }
             }
 
-            // If no process is available, increment time
             if (selectedProcess == null) {
                 currentTime++;
                 continue;
             }
 
-            // If switching to a new process, print the previous process execution range
             if (lastProcess != null && lastProcess != selectedProcess) {
-                System.out.println(startTime + "-" + currentTime + " P" + lastProcess.id);
-                System.out.println(currentTime + "-" + (currentTime + 1) + " CS"); // Print CS
-                currentTime++; // Add CS time
-                startTime = currentTime; // Reset start time for new process
+                System.out.println(startTime + "-" + currentTime + "\tP" + lastProcess.id);
+                System.out.println(currentTime + "-" + (currentTime + 1) + "\tCS");
+                currentTime++;
+                startTime = currentTime;
             }
 
-            // Execute the selected process until it is preempted or finished
             while (selectedProcess.remainingTime > 0) {
                 selectedProcess.remainingTime--;
                 currentTime++;
 
-                // Check if a different process should take over
                 Process nextProcess = null;
                 minRemainingTime = Integer.MAX_VALUE;
                 for (Process p : processes) {
@@ -85,23 +76,33 @@ public class SRTF {
                     }
                 }
 
-                // If a different process should take over, break the loop
                 if (nextProcess != null && nextProcess != selectedProcess) {
                     break;
                 }
             }
 
-            // If the process finished execution, mark it as completed
             if (selectedProcess.remainingTime == 0) {
                 selectedProcess.completionTime = currentTime;
+                selectedProcess.turnaroundTime = selectedProcess.completionTime - selectedProcess.arrivalTime;
+                selectedProcess.waitingTime = selectedProcess.turnaroundTime - selectedProcess.burstTime;
+                totalTurnaroundTime += selectedProcess.turnaroundTime;
+                totalWaitingTime += selectedProcess.waitingTime;
                 completedProcesses++;
             }
 
             lastProcess = selectedProcess;
         }
 
-        // Print the last process execution
-        System.out.println(startTime + "-" + currentTime + " P" + lastProcess.id);
+        System.out.println(startTime + "-" + currentTime + "\tP" + lastProcess.id);
+        
+        double avgTurnaroundTime = (double) totalTurnaroundTime / n;
+        double avgWaitingTime = (double) totalWaitingTime / n;
+        double cpuUtilization = ((double) (currentTime - (n - 1))) / currentTime * 100;
+        
+        System.out.println("\nPerformance Metrics");
+        System.out.printf("Average Turnaround Time: %.2f\n", avgTurnaroundTime);
+        System.out.printf("Average Waiting Time: %.2f\n", avgWaitingTime);
+        System.out.printf("CPU Utilization: %.2f%%\n", cpuUtilization);
 
         sc.close();
     }
