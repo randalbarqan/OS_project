@@ -6,6 +6,7 @@ public class SRTF {
         int arrivalTime;
         int burstTime;
         int remainingTime;
+        int completionTime;
 
         Process(int id, int arrivalTime, int burstTime) {
             this.id = id;
@@ -18,12 +19,10 @@ public class SRTF {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
 
-        // Input for number of processes
         System.out.print("Enter number of processes: ");
         int n = sc.nextInt();
         Process[] processes = new Process[n];
 
-        // Input arrival and burst times for each process
         for (int i = 0; i < n; i++) {
             System.out.print("Enter Arrival Time for P" + (i + 1) + ": ");
             int arrivalTime = sc.nextInt();
@@ -32,12 +31,12 @@ public class SRTF {
             processes[i] = new Process(i + 1, arrivalTime, burstTime);
         }
 
-        // Scheduling logic
         int currentTime = 0;
         int completedProcesses = 0;
-        boolean[] isCompleted = new boolean[n];
+        Process lastProcess = null;
+        int startTime = 0; // Track when a process starts running
 
-        System.out.println("Scheduling Algorithm: Shortest remaining time first");
+        System.out.println("\nScheduling Algorithm: Shortest Remaining Time First");
         System.out.println("Context Switch: 1 ms");
         System.out.println("Time Process/CS");
 
@@ -45,7 +44,7 @@ public class SRTF {
             Process selectedProcess = null;
             int minRemainingTime = Integer.MAX_VALUE;
 
-            // Find the process with the shortest remaining time that has arrived
+            // Select the process with the shortest remaining time
             for (Process p : processes) {
                 if (p.arrivalTime <= currentTime && p.remainingTime > 0) {
                     if (p.remainingTime < minRemainingTime) {
@@ -55,43 +54,54 @@ public class SRTF {
                 }
             }
 
-            // If no process is found, increment time
+            // If no process is available, increment time
             if (selectedProcess == null) {
                 currentTime++;
                 continue;
             }
 
-            // Calculate time slice until either the process completes or a new one arrives
-            int timeSlice = 1; // Minimum execution time
-            int nextTime = currentTime + timeSlice;
-
-            // Execute the selected process
-            System.out.print(currentTime + "-" + nextTime + " P" + selectedProcess.id + "\n");
-            selectedProcess.remainingTime--;
-
-            // Check if the process is completed
-            if (selectedProcess.remainingTime == 0) {
-                isCompleted[selectedProcess.id - 1] = true;
-                completedProcesses++;
+            // If switching to a new process, print the previous process execution range
+            if (lastProcess != null && lastProcess != selectedProcess) {
+                System.out.println(startTime + "-" + currentTime + " P" + lastProcess.id);
+                System.out.println(currentTime + "-" + (currentTime + 1) + " CS"); // Print CS
+                currentTime++; // Add CS time
+                startTime = currentTime; // Reset start time for new process
             }
 
-            currentTime = nextTime;
+            // Execute the selected process until it is preempted or finished
+            while (selectedProcess.remainingTime > 0) {
+                selectedProcess.remainingTime--;
+                currentTime++;
 
-            // Log context switch if there are remaining processes
-            Process nextProcess = null;
-            for (Process p : processes) {
-                if (p.arrivalTime <= currentTime && p.remainingTime > 0) {
-                    if (nextProcess == null || p.remainingTime < nextProcess.remainingTime) {
-                        nextProcess = p;
+                // Check if a different process should take over
+                Process nextProcess = null;
+                minRemainingTime = Integer.MAX_VALUE;
+                for (Process p : processes) {
+                    if (p.arrivalTime <= currentTime && p.remainingTime > 0) {
+                        if (p.remainingTime < minRemainingTime) {
+                            minRemainingTime = p.remainingTime;
+                            nextProcess = p;
+                        }
                     }
+                }
+
+                // If a different process should take over, break the loop
+                if (nextProcess != null && nextProcess != selectedProcess) {
+                    break;
                 }
             }
 
-            if (nextProcess != null && nextProcess != selectedProcess) {
-                System.out.print(currentTime + "-" + (currentTime + 1) + " CS\n");
-                currentTime++; // Increment for context switch
+            // If the process finished execution, mark it as completed
+            if (selectedProcess.remainingTime == 0) {
+                selectedProcess.completionTime = currentTime;
+                completedProcesses++;
             }
+
+            lastProcess = selectedProcess;
         }
+
+        // Print the last process execution
+        System.out.println(startTime + "-" + currentTime + " P" + lastProcess.id);
 
         sc.close();
     }
