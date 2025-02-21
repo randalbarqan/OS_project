@@ -31,6 +31,7 @@ public class SRTF {
         Process lastProcess = null;
         int startTime = 0;
         int totalTurnaroundTime = 0, totalWaitingTime = 0;
+        int totalExecutionTime = 0;
 
         System.out.println("\nScheduling Algorithm: Shortest Remaining Time First");
         System.out.println("Context Switch: 1 ms");
@@ -64,6 +65,7 @@ public class SRTF {
             while (selectedProcess.remainingTime > 0) {
                 selectedProcess.remainingTime--;
                 currentTime++;
+                totalExecutionTime++;
 
                 Process nextProcess = null;
                 minRemainingTime = Integer.MAX_VALUE;
@@ -97,7 +99,7 @@ public class SRTF {
         
         double avgTurnaroundTime = (double) totalTurnaroundTime / n;
         double avgWaitingTime = (double) totalWaitingTime / n;
-        double cpuUtilization = ((double) (currentTime - (n - 1))) / currentTime * 100;
+        double cpuUtilization = ((double) totalExecutionTime / currentTime) * 100;
         
         System.out.println("\nPerformance Metrics");
         System.out.printf("Average Turnaround Time: %.2f\n", avgTurnaroundTime);
