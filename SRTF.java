@@ -1,3 +1,8 @@
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Scanner;
 
 public class SRTF {
@@ -12,18 +17,52 @@ public class SRTF {
         }
     }
 
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
+    private JFrame frame;
+    private JTextArea outputArea;
+    private JTextField numProcessesField;
+    private JButton startButton;
 
-        System.out.print("Enter number of processes: ");
-        int n = sc.nextInt();
+    public SRTF() {
+        frame = new JFrame("SRTF Scheduling");
+        frame.setSize(600, 500);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(new BorderLayout());
+
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new FlowLayout());
+        numProcessesField = new JTextField(5);
+        startButton = new JButton("Start Scheduling");
+        inputPanel.add(new JLabel("Number of Processes:"));
+        inputPanel.add(numProcessesField);
+        inputPanel.add(startButton);
+        frame.add(inputPanel, BorderLayout.NORTH);
+
+        outputArea = new JTextArea(20, 50);
+        outputArea.setEditable(false);
+        JScrollPane outputScroll = new JScrollPane(outputArea);
+        frame.add(outputScroll, BorderLayout.CENTER);
+
+        startButton.addActionListener(e -> startScheduling());
+
+        frame.setVisible(true);
+    }
+
+    private void startScheduling() {
+        outputArea.setText("");
+        int n;
+        try {
+            n = Integer.parseInt(numProcessesField.getText());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(frame, "Invalid number of processes.");
+            return;
+        }
+
+        Scanner sc = new Scanner(System.in);
         Process[] processes = new Process[n];
 
         for (int i = 0; i < n; i++) {
-            System.out.print("Enter Arrival Time for P" + (i + 1) + ": ");
-            int arrivalTime = sc.nextInt();
-            System.out.print("Enter Burst Time for P" + (i + 1) + ": ");
-            int burstTime = sc.nextInt();
+            int arrivalTime = Integer.parseInt(JOptionPane.showInputDialog("Enter Arrival Time for P" + (i + 1) + ":"));
+            int burstTime = Integer.parseInt(JOptionPane.showInputDialog("Enter Burst Time for P" + (i + 1) + ":"));
             processes[i] = new Process(i + 1, arrivalTime, burstTime);
         }
 
@@ -33,9 +72,9 @@ public class SRTF {
         int totalTurnaroundTime = 0, totalWaitingTime = 0;
         int totalExecutionTime = 0;
 
-        System.out.println("\nScheduling Algorithm: Shortest Remaining Time First");
-        System.out.println("Context Switch: 1 ms");
-        System.out.println("Time\tProcess/CS");
+        outputArea.append("\nScheduling Algorithm: Shortest Remaining Time First\n");
+        outputArea.append("Context Switch: 1 ms\n");
+        outputArea.append("Time\tProcess/CS\n");
 
         while (completedProcesses < n) {
             Process selectedProcess = null;
@@ -56,8 +95,8 @@ public class SRTF {
             }
 
             if (lastProcess != null && lastProcess != selectedProcess) {
-                System.out.println(startTime + "-" + currentTime + "\tP" + lastProcess.id);
-                System.out.println(currentTime + "-" + (currentTime + 1) + "\tCS");
+                outputArea.append(startTime + "-" + currentTime + "\tP" + lastProcess.id + "\n");
+                outputArea.append(currentTime + "-" + (currentTime + 1) + "\tCS\n");
                 currentTime++;
                 startTime = currentTime;
             }
@@ -95,17 +134,20 @@ public class SRTF {
             lastProcess = selectedProcess;
         }
 
-        System.out.println(startTime + "-" + currentTime + "\tP" + lastProcess.id);
-        
+        outputArea.append(startTime + "-" + currentTime + "\tP" + lastProcess.id + "\n");
+
         double avgTurnaroundTime = (double) totalTurnaroundTime / n;
         double avgWaitingTime = (double) totalWaitingTime / n;
         double cpuUtilization = ((double) totalExecutionTime / currentTime) * 100;
-        
-        System.out.println("\nPerformance Metrics");
-        System.out.printf("Average Turnaround Time: %.2f\n", avgTurnaroundTime);
-        System.out.printf("Average Waiting Time: %.2f\n", avgWaitingTime);
-        System.out.printf("CPU Utilization: %.2f%%\n", cpuUtilization);
 
-        sc.close();
+        outputArea.append("\nPerformance Metrics\n");
+        outputArea.append("Average Turnaround Time: " + avgTurnaroundTime + "\n");
+        outputArea.append("Average Waiting Time: " + avgWaitingTime + "\n");
+        outputArea.append("CPU Utilization: " + cpuUtilization + "%\n");
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(SRTF::new);
     }
 }
+
