@@ -1,153 +1,120 @@
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Scanner;
+import java.util.*;
 
-public class SRTF {
-    static class Process {
-        int id, arrivalTime, burstTime, remainingTime, completionTime, waitingTime, turnaroundTime;
-
-        Process(int id, int arrivalTime, int burstTime) {
-            this.id = id;
-            this.arrivalTime = arrivalTime;
-            this.burstTime = burstTime;
-            this.remainingTime = burstTime;
-        }
-    }
-
-    private JFrame frame;
-    private JTextArea outputArea;
-    private JTextField numProcessesField;
-    private JButton startButton;
-
-    public SRTF() {
-        frame = new JFrame("SRTF Scheduling");
-        frame.setSize(600, 500);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLayout(new BorderLayout());
-
-        JPanel inputPanel = new JPanel();
-        inputPanel.setLayout(new FlowLayout());
-        numProcessesField = new JTextField(5);
-        startButton = new JButton("Start Scheduling");
-        inputPanel.add(new JLabel("Number of Processes:"));
-        inputPanel.add(numProcessesField);
-        inputPanel.add(startButton);
-        frame.add(inputPanel, BorderLayout.NORTH);
-
-        outputArea = new JTextArea(20, 50);
-        outputArea.setEditable(false);
-        JScrollPane outputScroll = new JScrollPane(outputArea);
-        frame.add(outputScroll, BorderLayout.CENTER);
-
-        startButton.addActionListener(e -> startScheduling());
-
-        frame.setVisible(true);
-    }
-
-    private void startScheduling() {
-        outputArea.setText("");
-        int n;
-        try {
-            n = Integer.parseInt(numProcessesField.getText());
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(frame, "Invalid number of processes.");
-            return;
-        }
-
-        Scanner sc = new Scanner(System.in);
-        Process[] processes = new Process[n];
-
-        for (int i = 0; i < n; i++) {
-            int arrivalTime = Integer.parseInt(JOptionPane.showInputDialog("Enter Arrival Time for P" + (i + 1) + ":"));
-            int burstTime = Integer.parseInt(JOptionPane.showInputDialog("Enter Burst Time for P" + (i + 1) + ":"));
-            processes[i] = new Process(i + 1, arrivalTime, burstTime);
-        }
-
-        int currentTime = 0, completedProcesses = 0;
-        Process lastProcess = null;
-        int startTime = 0;
-        int totalTurnaroundTime = 0, totalWaitingTime = 0;
-        int totalExecutionTime = 0;
-
-        outputArea.append("\nScheduling Algorithm: Shortest Remaining Time First\n");
-        outputArea.append("Context Switch: 1 ms\n");
-        outputArea.append("Time\tProcess/CS\n");
-
-        while (completedProcesses < n) {
-            Process selectedProcess = null;
-            int minRemainingTime = Integer.MAX_VALUE;
-
-            for (Process p : processes) {
-                if (p.arrivalTime <= currentTime && p.remainingTime > 0) {
-                    if (p.remainingTime < minRemainingTime) {
-                        minRemainingTime = p.remainingTime;
-                        selectedProcess = p;
-                    }
-                }
-            }
-
-            if (selectedProcess == null) {
-                currentTime++;
-                continue;
-            }
-
-            if (lastProcess != null && lastProcess != selectedProcess) {
-                outputArea.append(startTime + "-" + currentTime + "\tP" + lastProcess.id + "\n");
-                outputArea.append(currentTime + "-" + (currentTime + 1) + "\tCS\n");
-                currentTime++;
-                startTime = currentTime;
-            }
-
-            while (selectedProcess.remainingTime > 0) {
-                selectedProcess.remainingTime--;
-                currentTime++;
-                totalExecutionTime++;
-
-                Process nextProcess = null;
-                minRemainingTime = Integer.MAX_VALUE;
-                for (Process p : processes) {
-                    if (p.arrivalTime <= currentTime && p.remainingTime > 0) {
-                        if (p.remainingTime < minRemainingTime) {
-                            minRemainingTime = p.remainingTime;
-                            nextProcess = p;
-                        }
-                    }
-                }
-
-                if (nextProcess != null && nextProcess != selectedProcess) {
-                    break;
-                }
-            }
-
-            if (selectedProcess.remainingTime == 0) {
-                selectedProcess.completionTime = currentTime;
-                selectedProcess.turnaroundTime = selectedProcess.completionTime - selectedProcess.arrivalTime;
-                selectedProcess.waitingTime = selectedProcess.turnaroundTime - selectedProcess.burstTime;
-                totalTurnaroundTime += selectedProcess.turnaroundTime;
-                totalWaitingTime += selectedProcess.waitingTime;
-                completedProcesses++;
-            }
-
-            lastProcess = selectedProcess;
-        }
-
-        outputArea.append(startTime + "-" + currentTime + "\tP" + lastProcess.id + "\n");
-
-        double avgTurnaroundTime = (double) totalTurnaroundTime / n;
-        double avgWaitingTime = (double) totalWaitingTime / n;
-        double cpuUtilization = ((double) totalExecutionTime / currentTime) * 100;
-
-        outputArea.append("\nPerformance Metrics\n");
-        outputArea.append("Average Turnaround Time: " + avgTurnaroundTime + "\n");
-        outputArea.append("Average Waiting Time: " + avgWaitingTime + "\n");
-        outputArea.append("CPU Utilization: " + cpuUtilization + "%\n");
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(SRTF::new);
+class Process {
+    int id, arrivalTime, burstTime, remainingTime, completionTime, waitingTime, turnaroundTime;
+    
+    Process(int id, int arrivalTime, int burstTime) {
+        this.id = id;
+        this.arrivalTime = arrivalTime;
+        this.burstTime = burstTime;
+        this.remainingTime = burstTime;
     }
 }
 
+class Event implements Comparable<Event> {
+    int time;
+    String type; // "ARRIVAL", "CONTEXT_SWITCH", "EXECUTION", "TERMINATION"
+    Process process;
+    
+    Event(int time, String type, Process process) {
+        this.time = time;
+        this.type = type;
+        this.process = process;
+    }
+    
+    @Override
+    public int compareTo(Event other) {
+        return Integer.compare(this.time, other.time);
+    }
+}
+
+public class SRTF {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter number of processes: ");
+        int n = sc.nextInt();
+        
+        Process[] processes = new Process[n];
+        PriorityQueue<Event> eventQueue = new PriorityQueue<>();
+        
+        for (int i = 0; i < n; i++) {
+            System.out.print("Enter Arrival Time for P" + (i + 1) + ": ");
+            int arrivalTime = sc.nextInt();
+            System.out.print("Enter Burst Time for P" + (i + 1) + ": ");
+            int burstTime = sc.nextInt();
+            
+            processes[i] = new Process(i + 1, arrivalTime, burstTime);
+            eventQueue.add(new Event(arrivalTime, "ARRIVAL", processes[i]));
+        }
+        
+        int currentTime = 0, completedProcesses = 0, totalExecutionTime = 0;
+        PriorityQueue<Process> readyQueue = new PriorityQueue<>(Comparator.comparingInt(p -> p.remainingTime));
+        Process lastProcess = null;
+        
+        System.out.println("\nScheduling Algorithm: Shortest Remaining Time First");
+        System.out.println("Context Switch: 1 ms");
+        System.out.println("Time\tProcess/CS");
+        
+        while (completedProcesses < n) {
+            while (!eventQueue.isEmpty() && eventQueue.peek().time <= currentTime) {
+                Event event = eventQueue.poll();
+                Process process = event.process;
+                
+                if ("ARRIVAL".equals(event.type)) {
+                    readyQueue.add(process);
+                }
+            }
+            
+            if (!readyQueue.isEmpty()) {
+                Process selectedProcess = readyQueue.poll();
+                
+                if (lastProcess != null && lastProcess != selectedProcess) {
+                    System.out.println(currentTime + "-" + (currentTime + 1) + "\tCS");
+                    currentTime++;
+                }
+                
+                int startTime = currentTime;
+                lastProcess = selectedProcess;
+                
+                while (selectedProcess.remainingTime > 0) {
+                    selectedProcess.remainingTime--;
+                    currentTime++;
+                    totalExecutionTime++;
+                    
+                    while (!eventQueue.isEmpty() && eventQueue.peek().time == currentTime) {
+                        Event event = eventQueue.poll();
+                        if ("ARRIVAL".equals(event.type)) {
+                            readyQueue.add(event.process);
+                        }
+                    }
+                    
+                    if (!readyQueue.isEmpty() && readyQueue.peek().remainingTime < selectedProcess.remainingTime) {
+                        break;
+                    }
+                }
+                
+                System.out.println(startTime + "-" + currentTime + "\tP" + selectedProcess.id);
+                
+                if (selectedProcess.remainingTime == 0) {
+                    selectedProcess.completionTime = currentTime;
+                    selectedProcess.turnaroundTime = selectedProcess.completionTime - selectedProcess.arrivalTime;
+                    selectedProcess.waitingTime = selectedProcess.turnaroundTime - selectedProcess.burstTime;
+                    completedProcesses++;
+                } else {
+                    readyQueue.add(selectedProcess);
+                }
+            } else {
+                currentTime++;
+            }
+        }
+        
+        double avgTurnaroundTime = Arrays.stream(processes).mapToInt(p -> p.turnaroundTime).average().orElse(0);
+        double avgWaitingTime = Arrays.stream(processes).mapToInt(p -> p.waitingTime).average().orElse(0);
+        double cpuUtilization = ((double) totalExecutionTime / currentTime) * 100;
+        
+        System.out.println("\nPerformance Metrics");
+        System.out.println("Average Turnaround Time: " + (int) avgTurnaroundTime);
+        System.out.println("Average Waiting Time: " + avgWaitingTime);
+        System.out.println("CPU Utilization: " + String.format("%.2f", cpuUtilization) + "%");
+    }
+}
