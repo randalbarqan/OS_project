@@ -48,6 +48,7 @@ public class SRTF {
         }
         
         int currentTime = 0, completedProcesses = 0, totalExecutionTime = 0;
+        int totalTurnaroundTime = 0, totalWaitingTime = 0;
         PriorityQueue<Process> readyQueue = new PriorityQueue<>(Comparator.comparingInt(p -> p.remainingTime));
         Process lastProcess = null;
         
@@ -58,10 +59,8 @@ public class SRTF {
         while (completedProcesses < n) {
             while (!eventQueue.isEmpty() && eventQueue.peek().time <= currentTime) {
                 Event event = eventQueue.poll();
-                Process process = event.process;
-                
                 if ("ARRIVAL".equals(event.type)) {
-                    readyQueue.add(process);
+                    readyQueue.add(event.process);
                 }
             }
             
@@ -99,6 +98,8 @@ public class SRTF {
                     selectedProcess.completionTime = currentTime;
                     selectedProcess.turnaroundTime = selectedProcess.completionTime - selectedProcess.arrivalTime;
                     selectedProcess.waitingTime = selectedProcess.turnaroundTime - selectedProcess.burstTime;
+                    totalTurnaroundTime += selectedProcess.turnaroundTime;
+                    totalWaitingTime += selectedProcess.waitingTime;
                     completedProcesses++;
                 } else {
                     readyQueue.add(selectedProcess);
@@ -108,13 +109,13 @@ public class SRTF {
             }
         }
         
-        double avgTurnaroundTime = Arrays.stream(processes).mapToInt(p -> p.turnaroundTime).average().orElse(0);
-        double avgWaitingTime = Arrays.stream(processes).mapToInt(p -> p.waitingTime).average().orElse(0);
+        double avgTurnaroundTime = (double) totalTurnaroundTime / n;
+        double avgWaitingTime = (double) totalWaitingTime / n;
         double cpuUtilization = ((double) totalExecutionTime / currentTime) * 100;
         
         System.out.println("\nPerformance Metrics");
-        System.out.println("Average Turnaround Time: " + (int) avgTurnaroundTime);
-        System.out.println("Average Waiting Time: " + avgWaitingTime);
-        System.out.println("CPU Utilization: " + String.format("%.2f", cpuUtilization) + "%");
+        System.out.printf("Average Turnaround Time: %.2f\n", avgTurnaroundTime);
+        System.out.printf("Average Waiting Time: %.2f\n", avgWaitingTime);
+        System.out.printf("CPU Utilization: %.2f%%\n", cpuUtilization);
     }
 }
