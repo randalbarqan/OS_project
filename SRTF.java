@@ -13,7 +13,7 @@ class Process {
 
 class Event implements Comparable<Event> {
     int time;
-    String type; // "ARRIVAL", "CONTEXT_SWITCH", "EXECUTION", "TERMINATION"
+    String type; 
     Process process;
     
     Event(int time, String type, Process process) {
