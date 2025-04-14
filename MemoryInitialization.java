@@ -19,7 +19,7 @@ class MemoryBlock {
     }
 }
 
-public class Memory {
+public class MemoryInitialization {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
