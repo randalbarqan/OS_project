@@ -100,9 +100,6 @@ public class MemoryInitialization {
                             }
                         }
                     }
-                }else {
-                    System.out.println("This allocation strategy is not implemented yet.");
-                    System.out.println("============================================");
                 }
 
                     if (selectedIndex != -1) {
