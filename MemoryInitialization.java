@@ -69,11 +69,28 @@ public class MemoryInitialization {
                 String pid = scanner.next();
                 int processSize = scanner.nextInt();
 
+                int bestFitSize = Integer.MAX_VALUE;
                 int selectedIndex = -1;
                 int maxSize = -1;
                 
                 //Do first-fit and best-fit in here
-
+               if (strategy == 1) { // First Fit
+    for (int i = 0; i < M; i++) {
+        if (memoryBlocks[i].status.equals("free") && memoryBlocks[i].size >= processSize) {
+            selectedIndex = i;
+            break;
+        }
+    }
+} else if (strategy == 2) { // Best Fit
+    for (int i = 0; i < M; i++) {
+        if (memoryBlocks[i].status.equals("free") && memoryBlocks[i].size >= processSize) {
+            if (memoryBlocks[i].size < bestFitSize) {
+                bestFitSize = memoryBlocks[i].size;
+                selectedIndex = i;
+            }
+        }
+    }
+}else
                 if (strategy == 3) { // Worst Fit
                     for (int i = 0; i < M; i++) {
                         if (memoryBlocks[i].status.equals("free") && memoryBlocks[i].size >= processSize) {
@@ -83,6 +100,10 @@ public class MemoryInitialization {
                             }
                         }
                     }
+                }else {
+                    System.out.println("This allocation strategy is not implemented yet.");
+                    System.out.println("============================================");
+                }
 
                     if (selectedIndex != -1) {
                         MemoryBlock selectedBlock = memoryBlocks[selectedIndex];
@@ -96,10 +117,7 @@ public class MemoryInitialization {
                         System.out.println("No suitable block found for the process.");
                         System.out.println("============================================");
                     }
-                } else {
-                    System.out.println("This allocation strategy is not implemented yet.");
-                    System.out.println("============================================");
-                }
+                
             } else if (choice == 4) {
                 System.out.println("Exiting...");
                 System.out.println("============================================");
@@ -108,8 +126,10 @@ public class MemoryInitialization {
                 System.out.println("This option is not implemented.");
                 System.out.println("============================================");
             }
-        }
-
+    
+    }
         scanner.close();
+    
     }
 }
+
