@@ -1,4 +1,3 @@
-
 import java.util.Scanner;
 
 class MemoryBlock {
@@ -62,71 +61,96 @@ public class MemoryInitialization {
             System.out.println("4) Exit");
             System.out.println("============================================");
             System.out.print("Enter your choice: ");
-            int choice = scanner.nextInt();
+            
+            try {
+                int choice = scanner.nextInt();
 
-            if (choice == 1) {
-                System.out.print("Enter the process ID and size of process: ");
-                String pid = scanner.next();
-                int processSize = scanner.nextInt();
+                if (choice == 1) {
+                    System.out.print("Enter the process ID and size of process: ");
+                    String pid = scanner.next();
+                    int processSize = scanner.nextInt();
 
-                int bestFitSize = Integer.MAX_VALUE;
-                int selectedIndex = -1;
-                int maxSize = -1;
-                
-                //Do first-fit and best-fit in here
-               if (strategy == 1) { // First Fit
-    for (int i = 0; i < M; i++) {
-        if (memoryBlocks[i].status.equals("free") && memoryBlocks[i].size >= processSize) {
-            selectedIndex = i;
-            break;
-        }
-    }
-} else if (strategy == 2) { // Best Fit
-    for (int i = 0; i < M; i++) {
-        if (memoryBlocks[i].status.equals("free") && memoryBlocks[i].size >= processSize) {
-            if (memoryBlocks[i].size < bestFitSize) {
-                bestFitSize = memoryBlocks[i].size;
-                selectedIndex = i;
-            }
-        }
-    }
-}else
-                if (strategy == 3) { // Worst Fit
-                    for (int i = 0; i < M; i++) {
-                        if (memoryBlocks[i].status.equals("free") && memoryBlocks[i].size >= processSize) {
-                            if (memoryBlocks[i].size > maxSize) {
-                                maxSize = memoryBlocks[i].size;
+                    int bestFitSize = Integer.MAX_VALUE;
+                    int selectedIndex = -1;
+                    int maxSize = -1;
+
+                    if (strategy == 1) { // First Fit
+                        for (int i = 0; i < M; i++) {
+                            if (memoryBlocks[i].status.equals("free") && memoryBlocks[i].size >= processSize) {
                                 selectedIndex = i;
+                                break;
+                            }
+                        }
+                    } else if (strategy == 2) { // Best Fit
+                        for (int i = 0; i < M; i++) {
+                            if (memoryBlocks[i].status.equals("free") && memoryBlocks[i].size >= processSize) {
+                                if (memoryBlocks[i].size < bestFitSize) {
+                                    bestFitSize = memoryBlocks[i].size;
+                                    selectedIndex = i;
+                                }
+                            }
+                        }
+                    } else if (strategy == 3) { // Worst Fit
+                        for (int i = 0; i < M; i++) {
+                            if (memoryBlocks[i].status.equals("free") && memoryBlocks[i].size >= processSize) {
+                                if (memoryBlocks[i].size > maxSize) {
+                                    maxSize = memoryBlocks[i].size;
+                                    selectedIndex = i;
+                                }
                             }
                         }
                     }
-                }
 
                     if (selectedIndex != -1) {
                         MemoryBlock selectedBlock = memoryBlocks[selectedIndex];
                         selectedBlock.status = "allocated";
                         selectedBlock.processID = pid;
                         selectedBlock.internalFragmentation = selectedBlock.size - processSize;
-                        System.out.printf("%s Allocated at address %d, and the internal fragmentation is %d\n",
-                                pid, selectedBlock.startAddress, selectedBlock.internalFragmentation);
+                        System.out.println(pid + " Allocated at address " + selectedBlock.startAddress +
+                                ", and the internal fragmentation is " + selectedBlock.internalFragmentation);
                         System.out.println("============================================");
                     } else {
                         System.out.println("No suitable block found for the process.");
                         System.out.println("============================================");
                     }
-                
-            } else if (choice == 4) {
-                System.out.println("Exiting...");
-                System.out.println("============================================");
-                break;
-            } else {
-                System.out.println("This option is not implemented.");
-                System.out.println("============================================");
+                } else if (choice == 2) {
+                    System.out.print("Enter the process ID to deallocate: ");
+                    String pidToRemove = scanner.next();
+                    boolean found = false;
+
+                    for (int i = 0; i < M; i++) {
+                        if (memoryBlocks[i].processID.equals(pidToRemove)) {
+                            memoryBlocks[i].status = "free";
+                            memoryBlocks[i].processID = "Null";
+                            memoryBlocks[i].internalFragmentation = 0;
+                            found = true;
+                            System.out.println("Process " + pidToRemove + " deallocated from Block" + i);
+                            System.out.println("============================================");
+                            break;
+                        }
+                    }
+
+                    if (!found) {
+                        System.out.println("Process ID not found.");
+                        System.out.println("============================================");
+                    }
+                } else if (choice == 3) {
+                    System.out.println("Printing report...");
+                    // Add report logic here
+                } else if (choice == 4) {
+                    System.out.println("Exiting...");
+                    System.out.println("============================================");
+                    break;
+                } else {
+                    System.out.println("This option is not implemented.");
+                    System.out.println("============================================");
+                }
+            } catch (java.util.InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a number between 1 and 4.");
+                scanner.nextLine(); // Clear the invalid input
             }
-    
-    }
+        }
         scanner.close();
-    
     }
 }
 
