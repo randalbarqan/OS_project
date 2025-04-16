@@ -136,9 +136,9 @@ public class MemoryInitialization {
                     }
                 } else if (choice == 3) {
                     System.out.println("Memory blocks:");
-                    System.out.println("============================================");
+                    System.out.println("==================================================================");
                     System.out.println("Block#  Size  Start-End  Status   ProcessID   InternalFragmentation");
-                    System.out.println("============================================");
+                    System.out.println("==================================================================");
 
                     
                     for (int i = 0; i < M; i++) {
@@ -148,7 +148,7 @@ public class MemoryInitialization {
                                 memoryBlocks[i].processID, memoryBlocks[i].internalFragmentation);
                     }
 
-                    System.out.println("============================================");
+                    System.out.println("==================================================================");
                 } else if (choice == 4) {
                     System.out.println("Exiting...");
                     System.out.println("============================================");
