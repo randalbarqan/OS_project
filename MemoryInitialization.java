@@ -135,8 +135,20 @@ public class MemoryInitialization {
                         System.out.println("============================================");
                     }
                 } else if (choice == 3) {
-                    System.out.println("Printing report...");
-                    // Add report logic here
+                    System.out.println("Memory blocks:");
+                    System.out.println("============================================");
+                    System.out.println("Block#  Size  Start-End  Status   ProcessID   InternalFragmentation");
+                    System.out.println("============================================");
+
+                    
+                    for (int i = 0; i < M; i++) {
+                        System.out.printf("Block%d  %d KB  %d-%d  %s  %s  %d\n", 
+                                i, memoryBlocks[i].size, memoryBlocks[i].startAddress, 
+                                memoryBlocks[i].endAddress, memoryBlocks[i].status, 
+                                memoryBlocks[i].processID, memoryBlocks[i].internalFragmentation);
+                    }
+
+                    System.out.println("============================================");
                 } else if (choice == 4) {
                     System.out.println("Exiting...");
                     System.out.println("============================================");
@@ -153,4 +165,3 @@ public class MemoryInitialization {
         scanner.close();
     }
 }
-
