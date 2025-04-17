@@ -18,7 +18,7 @@ class MemoryBlock {
     }
 }
 
-public class MemoryInitialization {
+public class Memory {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -142,10 +142,15 @@ public class MemoryInitialization {
 
                     
                     for (int i = 0; i < M; i++) {
-                        System.out.printf("Block%d  %d KB  %d-%d  %s  %s  %d\n", 
-                                i, memoryBlocks[i].size, memoryBlocks[i].startAddress, 
-                                memoryBlocks[i].endAddress, memoryBlocks[i].status, 
-                                memoryBlocks[i].processID, memoryBlocks[i].internalFragmentation);
+                        System.out.printf("%-7s %-6s %-11s %-10s %-10s %-5s\n",
+                            "Block" + i,
+                            memoryBlocks[i].size + "KB",
+                            memoryBlocks[i].startAddress + "-" + memoryBlocks[i].endAddress,
+                            memoryBlocks[i].status,
+                            memoryBlocks[i].processID,
+                            memoryBlocks[i].internalFragmentation
+                        );
+
                     }
 
                     System.out.println("==================================================================");
